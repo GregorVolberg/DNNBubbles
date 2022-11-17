@@ -64,3 +64,4 @@ vignettes/*.pdf
 # raw or preprocessed data
 #/data
 #/etc
+/.ipynb_checkpoints
