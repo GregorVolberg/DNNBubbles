@@ -1,61 +1,46 @@
 % Bubbles Deep Neural Network Test
 % https://de.mathworks.com/help/deeplearning/getting-started-with-deep-learning-toolbox.html
+addpath('./func');
 
-%cOutputSize = ; % picture dimensions fpr AlexNet [227 227 3]
-                           % picture dimensions for googleNet [224 224 3]  
-% imds = imageDatastore('./gpics', ...
-%         'IncludeSubfolders', true, ...
-%         'LabelSource', 'foldernames'); 
-%imds = imageDatastore({'./pics/happy/', './pics/sad/'}, ...
-%        'IncludeSubfolders', true, ...
-%        'LabelSource', 'foldernames'); 
-    
-imds = imageDatastore({'./png/male/', './png/female/'}, ...
+% give image folders
+imds = imageDatastore('./img/faces/', ...
         'IncludeSubfolders', true, ...
         'LabelSource', 'foldernames'); 
 
 [imdsTrain,imdsValidation] = splitEachLabel(imds,0.7);
+numClasses = numel(categories(imdsTrain.Labels));
 
+% load net architecture
+load('./data/resnet50.mat', 'net'); % pretrained
+inputSize = net.Layers(1).InputSize; 
 
-net = resnet50;%alexnet;
-
-
-inputSize = net.Layers(1).InputSize; % [224 224 3]
-
+% convert to layer graph in order to modify layers
 if isa(net,'SeriesNetwork') 
   lgraph = layerGraph(net.Layers); 
 else
   lgraph = layerGraph(net);
 end 
 
-[learnableLayer,classLayer] = findLayersToReplace(lgraph);
+% find and replace classification layer and preceding learnable layer
+[learnableLayer, classLayer] = findLayersToReplace(lgraph);
 
-numClasses = numel(categories(imdsTrain.Labels));
-
-if isa(learnableLayer,'nnet.cnn.layer.FullyConnectedLayer')
-    newLearnableLayer = fullyConnectedLayer(numClasses, ...
+% class(learnableLayer)
+newLearnableLayer = fullyConnectedLayer(numClasses, ...
         'Name','new_fc', ...
         'WeightLearnRateFactor',10, ...
         'BiasLearnRateFactor',10);
-    
-elseif isa(learnableLayer,'nnet.cnn.layer.Convolution2DLayer')
-    newLearnableLayer = convolution2dLayer(1,numClasses, ...
-        'Name','new_conv', ...
-        'WeightLearnRateFactor',10, ...
-        'BiasLearnRateFactor',10);
-end
-
 lgraph = replaceLayer(lgraph,learnableLayer.Name,newLearnableLayer);
 
 newClassLayer = classificationLayer('Name','new_classoutput');
 lgraph = replaceLayer(lgraph,classLayer.Name,newClassLayer);
 
+% freeze first layers and re-connect
 layers = lgraph.Layers;
 connections = lgraph.Connections;
-
 layers(1:10) = freezeWeights(layers(1:10));
 lgraph = createLgraphUsingConnections(layers,connections);
 
+% image augmentation
 pixelRange = [-10 10];
 scaleRange = [0.9 1.1];
 imageAugmenter = imageDataAugmenter( ...
@@ -64,18 +49,15 @@ imageAugmenter = imageDataAugmenter( ...
     'RandYTranslation',pixelRange, ...
     'RandXScale',scaleRange, ...
     'RandYScale',scaleRange);
-%augimdsTrain = augmentedImageDatastore(cOutputSize(1:2), imdsTrain, ...
-%   'DataAugmentation',imageAugmenter);
 
 augimdsTrain = augmentedImageDatastore(inputSize(1:2), imdsTrain, ...
     'DataAugmentation',imageAugmenter,'ColorPreprocessing', 'gray2rgb');
-
 augimdsValidation = augmentedImageDatastore(inputSize(1:2),imdsValidation,...
     'ColorPreprocessing', 'gray2rgb');
 
-
+% training options
 miniBatchSize = 6;
-valFrequency = floor(numel(augimdsTrain.Files)/miniBatchSize);
+valFrequency  = floor(numel(augimdsTrain.Files)/miniBatchSize);
 options = trainingOptions('sgdm', ...
     'MiniBatchSize',miniBatchSize, ...
     'MaxEpochs',100, ...
@@ -85,11 +67,12 @@ options = trainingOptions('sgdm', ...
     'ValidationFrequency',valFrequency, ...
     'Verbose',false, ...
     'Plots','training-progress');
-% 
-net = trainNetwork(augimdsTrain,lgraph,options);
 
+% train and predict 
+net = trainNetwork(augimdsTrain,lgraph,options);
 [YPred,probs] = classify(net,augimdsValidation);
 accuracy = mean(YPred == imdsValidation.Labels);
+
 % % 
 % % 
 % % label = classify(net, faceImages{1})

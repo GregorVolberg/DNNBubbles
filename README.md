@@ -9,6 +9,8 @@ Faces were shown on a screen with the task to classify the gender (male / female
 Data storage location is **/DNNBubbles/data/** with files
 - BubblesFacesRaw.mat: Matlab structure with raw data for 28 participants
 - fm_struct_npic_470x349.mat: Stimuli used for face experiment, 6 scales x 470 x 349
+- resnet50.mat: a pre-trained resnet50 network, obtained from net = resnet50
+
 
 Image storage location is **/DNNBubbles/img/** with folders
 - faces: raw male (n = 20) and female (n = 20) faces as exported from Kdyn. 
