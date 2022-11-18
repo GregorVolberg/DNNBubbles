@@ -3,8 +3,20 @@ DNN for Bubbles data (NSSI and male / female faces)
 
 works from Schlaubox
 
-## Face data (with Vanessa M.)
+## Gender classification task (with Vanessa M.)
 Faces were shown on a screen with the task to classify the gender (male / female). 
+
+Data storage location is **/DNNBubbles/data/** with files
+- BubblesFacesRaw.mat: Matlab structure with raw data for 28 participants
+- fm_struct_npic_470x349.mat: Stimuli used for face experiment, 6 scales x 470 x 349
+
+Image storage location is **/DNNBubbles/img/** with folders
+- faces: raw male (n = 20) and female (n = 20) faces as exported from Kdyn. 
+- GenderComposite: Bubbleized images in folders /female/correct, /female/incorrect, /male/correct, /male/incorrect. File names contain the subject code and the trial number, for later image selection. Call */DNNBubbles/img/get_GenderCompositeFace.m* for image construction.
+
+## Emotion classification task (with Alex O.)
+
+
 
 ### Strategies for data analysis
 Learn bubbleized faces and classify full faces. The advantage is that per individual, the weights of the DNN layers could be identiftied and used in a layerwise back-propagation. resnet50 will be used.
