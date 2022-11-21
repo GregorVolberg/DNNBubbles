@@ -16,7 +16,7 @@ for vp = 1:numel(vpNames)
 tic
 
 % select per participant
-imageSubSet = allimages(contains(allimages, vpNames(1)));
+imageSubSet = allimages(contains(allimages, vpNames(vp)));
 
 % generate Labels
 Labels = cell(numel(imageSubSet), 1);
@@ -100,6 +100,7 @@ stopTime        = toc;
 DNN.minutes  = floor(stopTime/60);
 DNN.call     = callingFunction.name;
 DNN.folders  = imds.Folders;
+DNN.files    = imds.Files;
 DNN.labels   = unique(imds.Labels);
 DNN.accuracy = accuracy;
 DNN.net      = net;
