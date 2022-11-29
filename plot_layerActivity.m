@@ -14,8 +14,8 @@ imgSize = imgSize(1:2);
 scaledIM = imresize(im, 'OutputSize', DNN.net.Layers(1).InputSize(1:2));
 
 act1 = activations(DNN.net,scaledIM,'conv1');
-act1 = activations(DNN.net,scaledIM,'activation_49_relu');
-act1 = activations(DNN.net,scaledIM,'res5c_branch2c');
+%act1 = activations(DNN.net,scaledIM,'activation_49_relu');
+%act1 = activations(DNN.net,scaledIM,'res5c_branch2c');
 sz = size(act1);
 act1 = reshape(act1,[sz(1) sz(2) 1 sz(3)]);
 actnorm = mat2gray(act1);
@@ -37,6 +37,10 @@ imshow(Im);
 featIM = squeeze(mean(actnorm, 4));
 fullfeatIM = imresize(featIM, imgSize);
 imagesc(fullfeatIM); colormap(jet)
+
+allLayers = {DNN.net.Layers.Name};
+contains(allLayers, 'convol')
+
 
 % act1ch62 = act1(:,:,:,62);
 % act1ch62 = mat2gray(act1ch62);
